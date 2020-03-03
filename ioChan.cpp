@@ -628,7 +628,7 @@ void ioChannel::procAinChan(void) {
       break;
     
     case IO_TYPE_AIN_THERM_STIEN_3V3:
-      thermIn00 = analogRead(THRM_IN);
+      thermIn00 = ioRawVal;
       thermIn01 = (1023/thermIn00) - 1;
       thermIn02 = 1.0/thermIn01;
       thermIn03 = log(thermIn02);
