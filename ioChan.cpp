@@ -375,7 +375,7 @@ void ioChannel::initChan() {
     case IO_TYPE_AIN_LM35_3V3:
       ioStatus = IO_ST_AIN_NOMINAL;
       pinMode(ioPin, INPUT);
-      analogReference(INTERNAL);
+      // analogReference(INTERNAL);
 //      analogReadRes(16);
       analogReadAveraging(16);
       break;
