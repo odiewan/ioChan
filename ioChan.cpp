@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <ioChan.h>
 
 /*-----------------------------------------------------------------------------
@@ -111,6 +112,18 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
       ioMaxEngVal /= (long)(100);
+      ioStatus = IO_ST_AIN_OFFLINE;
+      ioErr = IO_ERR_AIN_NOM;
+      break;
+
+    case IO_TYPE_AIN_3V3_255:
+      ioUnits = IOUNIT_NA;
+      ioFixedPoints = 3;
+      ioGain = 255;    //<--Gain * 10,000
+      ioOffset = 0;   //<--Offset * 10,000
+      ioMinEngVal = ioOffset;
+      ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
+      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
@@ -348,6 +361,7 @@ void ioChannel::initChan() {
 
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_RAW:
+    case IO_TYPE_AIN_3V3_255:
     case IO_TYPE_AIN_3V3_1800:
     case IO_TYPE_AIN_3V3_3V3:
     case IO_TYPE_AIN_5V_3V3:
@@ -369,14 +383,11 @@ void ioChannel::initChan() {
     case IO_TYPE_AIN_INTERP_COOLANT_F:
       ioStatus = IO_ST_AIN_NOMINAL;
       pinMode(ioPin, INPUT);
-//      analogReference(DEFAULT);
       break;
 
     case IO_TYPE_AIN_LM35_3V3:
       ioStatus = IO_ST_AIN_NOMINAL;
       pinMode(ioPin, INPUT);
-      // analogReference(INTERNAL);
-//      analogReadRes(16);
       analogReadAveraging(16);
       break;
       break;
@@ -426,6 +437,7 @@ void ioChannel::procInChan(void) {
 
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_RAW:
+    case IO_TYPE_AIN_3V3_255:
     case IO_TYPE_AIN_3V3_1800:
     case IO_TYPE_AIN_3V3_3V3:
     case IO_TYPE_AIN_5V_3V3:
@@ -572,19 +584,23 @@ void ioChannel::procAinChan(void) {
       ioStatus = IO_ST_AIN_RAW;
       break;
 
+    case IO_TYPE_AIN_3V3_255:
     case IO_TYPE_AIN_3V3_1800:
       ioStatus = IO_ST_AIN_V;
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
         /* Gain is stored at gain * 100 */
-        ioEngVal = (long)(ioRawVal * ioGain) + ioOffset;
-        ioEngVal /= (long)(100);
+
+        ioEngVal = (float)(ioRawVal/MAX_AIN);
+        ioEngVal *= ioGain;
+        ioEngVal += ioOffset;
+        ioEngVal /= (long)(10 ^ ioFixedPoints);
       }
       /* Otherwise, just assign raw units to engineering units */
       else
         ioEngVal = filterAin((long)ioRawVal);
-//        ioEngVal = (long)ioRawVal;
       break;
+
 
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_3V3_3V3:
@@ -902,6 +918,7 @@ void ioChannel::genDispStr(void) {
 
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_RAW:
+    case IO_TYPE_AIN_3V3_255:
     case IO_TYPE_AIN_3V3_3V3:
     case IO_TYPE_AIN_5V_3V3:
     case IO_TYPE_AIN_10V_3V3:

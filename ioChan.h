@@ -65,6 +65,7 @@ enum ioChanTypeEnum {
 
   IO_TYPE_AIN_3V3_1800,           // 0-3.3v scaled to 0-1800 for use as a
                                   // servo cmd value
+  IO_TYPE_AIN_3V3_255,           // 0-3.3v scaled to 0-255
 
   IO_TYPE_AIN_3V3_3V3,            // 0-3.3v scaled to 3.3v 10bit Analog
   IO_TYPE_AIN_5V_3V3,             // 0-5v scaled to 3.3v 10bit Analog
