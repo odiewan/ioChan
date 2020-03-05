@@ -33,7 +33,7 @@ ioChannel::ioChannel() {
   ioExtVar = NULL;
   ioServo = NULL;
 
-  ioFixedPoints = 0;
+
   ioLowRed = 0;
   ioAccumLR = 0;
 
@@ -60,14 +60,13 @@ ioChannel::ioChannel() {
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
+ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eVal) {
   ioType = nType;
   ioUnits = IOUNIT_NA;
   ioFilter = IO_FILT_NONE;
   ioPin = nPin;
   ioExtVar = eVal;
 
-  ioFixedPoints = 2;
 
   ioRawVal = 0;
   ioRawValRem = 0;
@@ -106,36 +105,33 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
 
     case IO_TYPE_AIN_3V3_1800:
       ioUnits = IOUNIT_NA;
-      ioFixedPoints = 0;
       ioGain = 176;    //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(100);
+      ioMaxEngVal /= (100);
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
 
     case IO_TYPE_AIN_3V3_255:
       ioUnits = IOUNIT_NA;
-      ioFixedPoints = 3;
-      ioGain = 255;    //<--Gain * 10,000
+      
+      ioGain = 254;    //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
 
     case IO_TYPE_AIN_3V3_3V3:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 29;    //<--Gain * 10,000
       ioOffset = -3;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
@@ -143,36 +139,36 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_5V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 49;    //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
 
     case IO_TYPE_AIN_10V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 98;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
 
     case IO_TYPE_AIN_12V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 117;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
@@ -180,12 +176,12 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
       //----Top R = 20kOhm, Bottom R = 5k scaled to a 0-3v range
     case IO_TYPE_AIN_15V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 144;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       ioLowRed = 10000;       // 10v
@@ -198,12 +194,12 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
     //----Top R = 20kOhm, Bottom R = 5k scaled to a 0-5v range
     case IO_TYPE_AIN_15V_5V:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 224;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       ioLowRed = 10000;       // 10v
@@ -216,24 +212,23 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
 
     case IO_TYPE_AIN_31V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      ioFixedPoints = 3;
+      
       ioGain = 263;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
 
     case IO_TYPE_AIN_NTC_5V:
       ioUnits = IOUNIT_TEMP_C;
-      ioFixedPoints = 2;
       ioGain = 95;   //<--Gain * 10,000
       ioOffset =  16000;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
+
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
@@ -241,13 +236,12 @@ ioChannel::ioChannel(ioChanTypeEnum nType, char nPin, long* eVal) {
 
     case IO_TYPE_AIN_LM35_3V3:
       ioUnits = IOUNIT_TEMP_C;
-      ioFixedPoints = 1;
+      
       ioGain = -300;    //<--Gain * 10,000
       ioOffset = 76800;   //<--Offset * 10,000
 
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-      ioMaxEngVal /= (long)(10 ^ ioFixedPoints);
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
@@ -381,12 +375,12 @@ void ioChannel::initChan() {
     case IO_TYPE_AIN_INTERP_COOLANT_C:
 
     case IO_TYPE_AIN_INTERP_COOLANT_F:
-      ioStatus = IO_ST_AIN_NOMINAL;
+      ioStatus = IO_ST_AIN_OFFLINE;
       pinMode(ioPin, INPUT);
       break;
 
     case IO_TYPE_AIN_LM35_3V3:
-      ioStatus = IO_ST_AIN_NOMINAL;
+      ioStatus = IO_ST_AIN_OFFLINE;
       pinMode(ioPin, INPUT);
       analogReadAveraging(16);
       break;
@@ -480,7 +474,7 @@ void ioChannel::procInChan(void) {
 //
 //-----------------------------------------------------------------------------
 void ioChannel::procPwmInChan(void) {
-  long static tempVal = 0;
+  int static tempVal = 0;
 
 
   tempVal = pulseIn(ioPin, HIGH, PULSE_IN_TIMEOUT);
@@ -539,9 +533,9 @@ void ioChannel::procPwmInChan(void) {
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-long ioChannel::filterAin(long ainIn) {
-  static long ainShadow = 0;
-  static long ainOut = 0;
+float_t ioChannel::filterAin(float_t ainIn) {
+  static float_t ainShadow = 0;
+  static float_t ainOut = 0;
 
   switch(ioFilter) {
     default:
@@ -563,13 +557,14 @@ long ioChannel::filterAin(long ainIn) {
 //
 //-----------------------------------------------------------------------------
 void ioChannel::procAinChan(void) {
-  static float thermIn00 = 0;
-  static float thermIn01 = 0;
-  static float thermIn02 = 0;
-  static float thermIn03 = 0;
-  static float thermIn04 = 0;
-  static float thermIn05 = 0;
-  static float thermIn06 = 0;
+  static float_t thermIn00 = 0;
+  static float_t thermIn01 = 0;
+  static float_t thermIn02 = 0;
+  static float_t thermIn03 = 0;
+  static float_t thermIn04 = 0;
+  static float_t thermIn05 = 0;
+  static float_t thermIn06 = 0;
+  static float_t tempEVal = 0;
 
   /* Grab the raw value */
   ioRawVal = analogRead(ioPin);
@@ -580,25 +575,23 @@ void ioChannel::procAinChan(void) {
   switch(ioType) {
     default:
     case IO_TYPE_AIN_RAW:
-      ioEngVal = (long)ioRawVal;
+      ioEngVal = ioRawVal;
       ioStatus = IO_ST_AIN_RAW;
       break;
 
     case IO_TYPE_AIN_3V3_255:
     case IO_TYPE_AIN_3V3_1800:
-      ioStatus = IO_ST_AIN_V;
+      ioStatus = IO_ST_AIN_3V3;
       /* if the gain is non-zero, covert from raw units to eng units */
-      if(ioGain != 0) {
+      if(ioGain > 0) {
         /* Gain is stored at gain * 100 */
 
-        ioEngVal = (float)(ioRawVal/MAX_AIN);
-        ioEngVal *= ioGain;
+        ioEngVal = (float_t)(ioRawVal/MAX_AIN) * ioGain;
         ioEngVal += ioOffset;
-        ioEngVal /= (long)(10 ^ ioFixedPoints);
       }
       /* Otherwise, just assign raw units to engineering units */
-      else
-        ioEngVal = filterAin((long)ioRawVal);
+      // else
+      //   // ioEngVal = filterAin(ioRawVal);
       break;
 
 
@@ -614,18 +607,17 @@ void ioChannel::procAinChan(void) {
     case IO_TYPE_AIN_12V_5V:
     case IO_TYPE_AIN_15V_5V:
     case IO_TYPE_AIN_31V_5V:
-      ioStatus = IO_ST_AIN_V;
+      ioStatus = IO_ST_AIN_RAW;
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
         /* Gain is stored at gain * 100 */
-        ioEngVal = (long)(ioRawVal * ioGain) + ioOffset;
-        ioEngVal /= (long)(10 ^ ioFixedPoints);
-//        ioEngVal = filterAin((long)ioEngVal);
+        ioEngVal = (ioRawVal * ioGain) + ioOffset;
+
+//        ioEngVal = filterAin(ioEngVal);
       }
       /* Otherwise, just assign raw units to engineering units */
       else
-        ioEngVal = filterAin((long)ioRawVal);
-//        ioEngVal = (long)ioRawVal;
+        ioEngVal = filterAin(ioRawVal);
       break;
 
     case IO_TYPE_AIN_LM35_3V3:
@@ -633,17 +625,17 @@ void ioChannel::procAinChan(void) {
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
         /* Gain is stored at gain * 100 */
-        ioEngVal = ioRawVal * ioGain + ioOffset;
-        ioEngVal /= (long)(10 ^ ioFixedPoints);
-//        ioEngVal = filterAin((long)ioEngVal);
+        ioEngVal = (ioRawVal * ioGain) + ioOffset;
+
+//        ioEngVal = filterAin(ioEngVal);
       }
       /* Otherwise, just assign raw units to engineering units */
       else
-        ioEngVal = filterAin((long)ioRawVal);
-//        ioEngVal = (long)ioRawVal;
+        ioEngVal = filterAin(ioRawVal);
       break;
     
     case IO_TYPE_AIN_THERM_STIEN_3V3:
+      ioStatus = IO_ST_AIN_V;
       thermIn00 = ioRawVal;
       thermIn01 = (1023/thermIn00) - 1;
       thermIn02 = 1.0/thermIn01;
@@ -657,21 +649,20 @@ void ioChannel::procAinChan(void) {
       ioEngVal -= (273.15);
 
 
-      ioEngVal /= (long)(10 ^ ioFixedPoints);
+
       break;
 
     case IO_TYPE_AIN_NTC_5V:
-      ioStatus = IO_ST_AIN_V;
+      ioStatus = IO_ST_AIN_5v;
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
         /* Gain is stored at gain * 100 */
-        ioEngVal = (long)(ioRawValRem * ioGain) + ioOffset;
-        ioEngVal /= (long)(10 ^ ioFixedPoints);
+        ioEngVal = (ioRawValRem * ioGain) + ioOffset;
+
       }
       /* Otherwise, just assign raw units to engineering units */
       else
-        ioEngVal = filterAin((long)ioRawVal);
-//        ioEngVal = (long)ioRawVal;
+        ioEngVal = filterAin(ioRawVal);
       break;
 
     case IO_TYPE_AIN_INTERP_USER:
@@ -679,6 +670,8 @@ void ioChannel::procAinChan(void) {
     case IO_TYPE_AIN_INTERP_COOLANT_C:
     case IO_TYPE_AIN_INTERP_OAT_F:
     case IO_TYPE_AIN_INTERP_COOLANT_F:
+      ioStatus = IO_ST_DEF;
+
       break;
   }
 
@@ -687,7 +680,7 @@ void ioChannel::procAinChan(void) {
     *ioExtVar = ioEngVal;
 
   /* Handle alarm level detection */
-  alarmsAIN();
+  // alarmsAIN();
 };
 
 //-----------------------------------------------------------------------------
@@ -705,18 +698,18 @@ void ioChannel::procDoutChanPWM() {
   ioEngVal = *ioExtVar;
 
   //---Set the ioChan status---
-  ioStatus = IO_ERR_DOUT_PWM_A;
+  ioErr = IO_ERR_DOUT_PWM_A;
 
 
   //---Invert the output---0
   if(ioInvert == 1) {
-    ioRawVal = (PWM_ENG_MAX - ioEngVal) / (unsigned long)PWM_DC_PER_PWM_ENG;
-    ioStatus = IO_ERR_DOUT_PWM_B;
+    ioRawVal = (PWM_ENG_MAX - ioEngVal) / (unsigned int)PWM_DC_PER_PWM_ENG;
+    ioErr = IO_ERR_DOUT_PWM_B;
   }
   //---Not inverted output---
   else {
-    ioRawVal = ioEngVal / (unsigned long)PWM_DC_PER_PWM_ENG;
-    ioStatus = IO_ERR_DOUT_PWM_C;
+    ioRawVal = ioEngVal / (unsigned int)PWM_DC_PER_PWM_ENG;
+    ioErr = IO_ERR_DOUT_PWM_C;
   }
 
   if(ioRawVal > PWM_8_MAX)
@@ -733,7 +726,7 @@ void ioChannel::procDoutChanPWM() {
 //-----------------------------------------------------------------------------
 void ioChannel::procServoOutChan(void) {
 
-  ioStatus = IO_ST_DOUT_SERVO_OFFLINE;
+  ioErr = IO_ST_DOUT_SERVO_OFFLINE;
   ioRawVal = *ioExtVar;
   ioEngVal = ioRawVal/10;
 
@@ -812,7 +805,7 @@ void ioChannel::procServoOutChan(void) {
 //-----------------------------------------------------------------------------
 void ioChannel::procOutChan(void) {
   ioStatus = IO_ST_DEF;
-  ioStatus = IO_ERR_NONE;
+  ioErr = IO_ERR_NONE;
   switch (ioType) {
     default:
     case IO_TYPE_AIN_NORM:
@@ -966,10 +959,10 @@ void ioChannel::genDispSvoStr(void) {
 //
 //-----------------------------------------------------------------------------
 void ioChannel::genDispAINStr(void) {
-  char padLen = 0;
+  int padLen = 0;
   unsigned int strLen = 0;
   unsigned int idx = 0;
-  unsigned long tempVal = 0;
+  unsigned int tempVal = 0;
   String engVarStr = "";
   String negStr = "";
   String zeroPad = "";
@@ -990,30 +983,30 @@ void ioChannel::genDispAINStr(void) {
   if(ioEngVal < 0)
     negStr = "-";
 
-  if(strLen < ioFixedPoints) {
-    padLen = ioFixedPoints - strLen;
+  // if(strLen < ioFixedPoints) {
+  //   padLen = ioFixedPoints - strLen;
 
-    for(char i = 0; i < padLen; i++)
-      zeroPad += "0";
+  //   for(int i = 0; i < padLen; i++)
+  //     zeroPad += "0";
 
-    RHStr = zeroPad + engVarStr;
-    LHStr = "0";
-  }
-  //    Eng var has equal digits than ioFixedPoints---
-  //      * RHStr = engVal
-  //      * LHStr equals "0"
-  else if(strLen == ioFixedPoints) {
-    RHStr = engVarStr;
-    LHStr = "0";
-  }
-  //    Eng var has more digits than ioFixedPoints---
-  //      * RHStr equals ioFixedPoints number of chars from the right of EngVal
-  //      * LHStr equals everything to the left of RHStr
-  else {
-    idx = strLen - ioFixedPoints;
-    RHStr = engVarStr.substring(idx);
-    LHStr = engVarStr.substring(0, idx);
-  }
+  //   RHStr = zeroPad + engVarStr;
+  //   LHStr = "0";
+  // }
+  // //    Eng var has equal digits than ioFixedPoints---
+  // //      * RHStr = engVal
+  // //      * LHStr equals "0"
+  // else if(strLen == ioFixedPoints) {
+  //   RHStr = engVarStr;
+  //   LHStr = "0";
+  // }
+  // //    Eng var has more digits than ioFixedPoints---
+  // //      * RHStr equals ioFixedPoints number of chars from the right of EngVal
+  // //      * LHStr equals everything to the left of RHStr
+  // else {
+  //   idx = strLen - ioFixedPoints;
+  //   RHStr = engVarStr.substring(idx);
+  //   LHStr = engVarStr.substring(0, idx);
+  // }
 
   switch(ioUnits) {
     case IOUNIT_NA:
@@ -1064,20 +1057,20 @@ String ioChannel::getDispStr(void) {
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-char ioChannel::getChanStat(void) {
+int ioChannel::getChanStat(void) {
   return ioStatus;
 };
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-long ioChannel::getEngVal(void) {
+float_t ioChannel::getEngVal(void) {
   return ioEngVal;
 };
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-long ioChannel::getRawVal(void) {
+int ioChannel::getRawVal(void) {
   return ioRawVal;
 };

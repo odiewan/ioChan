@@ -15,7 +15,7 @@
 #define DWELL_MIN             1115
 #define DWELL_RANGE           771
 
-#define MAX_AIN               1024
+#define MAX_AIN               1023.0
 //#define MAX_AIN               1023
 
 #define ON                    1
@@ -217,64 +217,63 @@ enum ioUnitsEnum {
 
 class ioChannel {
   public:
-    long ioRawVal;
-    long ioRawValRem; //=== 1023 - ioRawVal
-    long ioEngVal;
-    char ioFilter;
-    unsigned char ioFixedPoints;
-    long ioIntpTemp;
+    int ioRawVal;
+    int ioRawValRem; //=== 1023 - ioRawVal
+    float_t ioEngVal;
+    int ioFilter;
+    float_t ioGain;
+    int ioOffset;
+    int ioIntpTemp;
     String ioOutString;
+    int ioPin;
+    int ioStatus;
+    int ioType;
+    int ioErr;
+    int ioUnits;
+    int ioInvert;
 
     ioChannel();
 
-    ioChannel(ioChanTypeEnum nType, char nPin, long* eVal);
+    ioChannel(ioChanTypeEnum nType, int nPin, int* eVal);
 
     void initChan(void);
 
     void procInChan(void);
     void procOutChan(void);
 
-    long getRawVal(void);
+    int getRawVal(void);
 
-    char getChanStat(void);
-    long getEngVal(void);
+    int getChanStat(void);
+    float_t getEngVal(void);
     String getDispStr(void);
-    char ioType;
 
 
 
   private:
-    char ioPin;
-    char ioStatus;
-    char ioErr;
-    char ioUnits;
-    char ioInvert;
-    long *ioExtVar;
+    int *ioExtVar;
 
-    unsigned long ioRawPWM;
-    unsigned long ioDutyCycleIn;
+    unsigned int ioRawPWM;
+    unsigned int ioDutyCycleIn;
     unsigned int ioDutyCycleOut;
 
-    char ioAccumLR;
-    char ioAccumHR;
-    char ioAccumLY;
-    char ioAccumHY;
+    int ioAccumLR;
+    int ioAccumHR;
+    int ioAccumLY;
+    int ioAccumHY;
 
-    long ioCalEngMin;
-    long ioCalEngMax;
-    long ioMinEngVal;
-    long ioMaxEngVal;
-    long ioEngValOn;
-    long ioEngValOff;
+    int ioCalEngMin;
+    int ioCalEngMax;
+    int ioMinEngVal;
+    int ioMaxEngVal;
+    int ioEngValOn;
+    int ioEngValOff;
 
-    long ioGain;
-    long ioOffset;
-    long ioLowRed;
-    long ioLowYel;
-    long ioHiYel;
-    long ioHiRed;
-    long *ioInVal;
-    long *ioOutVal;
+    int ioLowRed;
+    int ioLowYel;
+    int ioHiYel;
+    int ioHiRed;
+    int *ioInVal;
+    int *ioOutVal;
 
     Servo *ioServo;
 
@@ -285,7 +284,7 @@ class ioChannel {
     void procIOChan(void);
     void procAinChan(void);
     void alarmsAIN(void);
-    long filterAin(long ainIn);
+    float_t filterAin(float_t ainIn);
     void genDispStr(void);
     void genDispSvoStr(void);
     void genDispAINStr(void);
