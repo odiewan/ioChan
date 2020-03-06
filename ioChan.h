@@ -63,8 +63,7 @@ enum ioChanTypeEnum {
   IO_TYPE_AIN_NORM,               // Linear conversion using gain and offset
   IO_TYPE_AIN_RAW,                // No gain or offset, eng Val = raw val
 
-  IO_TYPE_AIN_3V3_1800,           // 0-3.3v scaled to 0-1800 for use as a
-                                  // servo cmd value
+  IO_TYPE_AIN_3V3_1800,           // 0-3.3v scaled to 0-1800 for use as a servo cmd value
   IO_TYPE_AIN_3V3_255,           // 0-3.3v scaled to 0-255
 
   IO_TYPE_AIN_3V3_3V3,            // 0-3.3v scaled to 3.3v 10bit Analog
@@ -219,9 +218,10 @@ class ioChannel {
   public:
     int ioRawVal;
     int ioRawValRem; //=== 1023 - ioRawVal
-    float_t ioEngVal;
+    float ioEngVal;
+    float ioEngValFilt;
     int ioFilter;
-    float_t ioGain;
+    float ioGain;
     int ioOffset;
     int ioIntpTemp;
     String ioOutString;
@@ -234,7 +234,7 @@ class ioChannel {
 
     ioChannel();
 
-    ioChannel(ioChanTypeEnum nType, int nPin, int* eVal);
+    ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr);
 
     void initChan(void);
 
@@ -244,13 +244,13 @@ class ioChannel {
     int getRawVal(void);
 
     int getChanStat(void);
-    float_t getEngVal(void);
+    float getEngVal(void);
     String getDispStr(void);
 
 
 
   private:
-    int *ioExtVar;
+    int *ioExtVarPtr;
 
     unsigned int ioRawPWM;
     unsigned int ioDutyCycleIn;
@@ -284,7 +284,7 @@ class ioChannel {
     void procIOChan(void);
     void procAinChan(void);
     void alarmsAIN(void);
-    float_t filterAin(float_t ainIn);
+    float filterAin(float ainIn);
     void genDispStr(void);
     void genDispSvoStr(void);
     void genDispAINStr(void);

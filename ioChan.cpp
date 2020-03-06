@@ -23,6 +23,7 @@ ioChannel::ioChannel() {
   ioRawValRem = 0;
 
   ioEngVal = 0;
+  ioEngValFilt = 0;
   ioMinEngVal = 0;
   ioMaxEngVal = 0;
   ioEngValOn = 0;
@@ -30,7 +31,7 @@ ioChannel::ioChannel() {
   ioCalEngMax = 0;
   ioCalEngMin = 0;
 
-  ioExtVar = NULL;
+  ioExtVarPtr = NULL;
   ioServo = NULL;
 
 
@@ -60,12 +61,13 @@ ioChannel::ioChannel() {
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eVal) {
+ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
   ioType = nType;
   ioUnits = IOUNIT_NA;
   ioFilter = IO_FILT_NONE;
   ioPin = nPin;
-  ioExtVar = eVal;
+  ioExtVarPtr = eValPtr;
+  *ioExtVarPtr = 0;
 
 
   ioRawVal = 0;
@@ -73,6 +75,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eVal) {
   ioRawPWM = 0;
 
   ioEngVal = 0;
+  ioEngValFilt = 0;
 
   ioDutyCycleIn = 0;
   ioDutyCycleOut = 0;
@@ -245,6 +248,20 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eVal) {
       ioStatus = IO_ST_AIN_OFFLINE;
       ioErr = IO_ERR_AIN_NOM;
       break;
+
+    case IO_TYPE_AIN_THERM_STIEN_3V3:
+      ioUnits = IOUNIT_TEMP_C;
+      
+      ioGain = 1;    //<--Gain * 10,000
+      ioOffset = 1;   //<--Offset * 10,000
+
+      ioMinEngVal = ioOffset;
+      ioMaxEngVal = MAX_AIN;
+      ioStatus = IO_ST_AIN_OFFLINE;
+      ioErr = IO_ERR_AIN_NOM;
+      break;
+
+
 
     case IO_TYPE_AIN_RAW:
       ioGain = 1;
@@ -452,6 +469,8 @@ void ioChannel::procInChan(void) {
     case IO_TYPE_AIN_INTERP_COOLANT_C:
     case IO_TYPE_AIN_INTERP_OAT_F:
     case IO_TYPE_AIN_INTERP_COOLANT_F:
+    case IO_TYPE_AIN_THERM_STIEN_3V3:
+    
       procAinChan();
       break;
 
@@ -526,16 +545,16 @@ void ioChannel::procPwmInChan(void) {
 //  ioEngVal = ((ioRawVal - DWELL_MIN)/3);
 
   /* copy engineering value to final consumer */
-  if(ioExtVar != NULL)
-    *ioExtVar = ioEngVal;
+  if(ioExtVarPtr != NULL)
+    *ioExtVarPtr = ioEngVal;
 };
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-float_t ioChannel::filterAin(float_t ainIn) {
-  static float_t ainShadow = 0;
-  static float_t ainOut = 0;
+float ioChannel::filterAin(float ainIn) {
+  static float ainShadow = 0;
+  static float ainOut = 0;
 
   switch(ioFilter) {
     default:
@@ -544,7 +563,7 @@ float_t ioChannel::filterAin(float_t ainIn) {
       ainOut = ainIn;
       break;
     case IO_FILT_WEIGHTED_AVG:
-      ainOut = (ainIn * S1_WEIGHT) + (ainShadow * S2_WEIGHT)/WEIGHT_TOTAL;
+      ainOut = ((ainIn * S1_WEIGHT) + (ainShadow * S2_WEIGHT))/(WEIGHT_TOTAL *2);
       break;
   }
 
@@ -557,14 +576,14 @@ float_t ioChannel::filterAin(float_t ainIn) {
 //
 //-----------------------------------------------------------------------------
 void ioChannel::procAinChan(void) {
-  static float_t thermIn00 = 0;
-  static float_t thermIn01 = 0;
-  static float_t thermIn02 = 0;
-  static float_t thermIn03 = 0;
-  static float_t thermIn04 = 0;
-  static float_t thermIn05 = 0;
-  static float_t thermIn06 = 0;
-  static float_t tempEVal = 0;
+  static float thermIn00 = 0;
+  static float thermIn01 = 0;
+  static float thermIn02 = 0;
+  static float thermIn03 = 0;
+  static float thermIn04 = 0;
+  static float thermIn05 = 0;
+  static float thermIn06 = 0;
+  static float tempEVal = 0;
 
   /* Grab the raw value */
   ioRawVal = analogRead(ioPin);
@@ -586,7 +605,7 @@ void ioChannel::procAinChan(void) {
       if(ioGain > 0) {
         /* Gain is stored at gain * 100 */
 
-        ioEngVal = (float_t)(ioRawVal/MAX_AIN) * ioGain;
+        ioEngVal = (float)(ioRawVal/MAX_AIN) * ioGain;
         ioEngVal += ioOffset;
       }
       /* Otherwise, just assign raw units to engineering units */
@@ -646,7 +665,8 @@ void ioChannel::procAinChan(void) {
       thermIn04 = thermIn03 / 3950.0;
       thermIn04 += 1.0/(25.0 + 273.15);
       thermIn05 = (1.0/thermIn04);
-      ioEngVal -= (273.15);
+      ioEngVal = thermIn05 - (273.15);
+      ioEngValFilt = filterAin(ioEngVal);
 
 
 
@@ -676,8 +696,8 @@ void ioChannel::procAinChan(void) {
   }
 
   /* copy engineering value to final consumer */
-  if(ioExtVar != NULL)
-    *ioExtVar = ioEngVal;
+  if(ioExtVarPtr != NULL)
+    *ioExtVarPtr = ioEngVal;
 
   /* Handle alarm level detection */
   // alarmsAIN();
@@ -695,7 +715,7 @@ void ioChannel::procIOChan(void) {
 //
 //-----------------------------------------------------------------------------
 void ioChannel::procDoutChanPWM() {
-  ioEngVal = *ioExtVar;
+  ioEngVal = *ioExtVarPtr;
 
   //---Set the ioChan status---
   ioErr = IO_ERR_DOUT_PWM_A;
@@ -727,7 +747,7 @@ void ioChannel::procDoutChanPWM() {
 void ioChannel::procServoOutChan(void) {
 
   ioErr = IO_ST_DOUT_SERVO_OFFLINE;
-  ioRawVal = *ioExtVar;
+  ioRawVal = *ioExtVarPtr;
   ioEngVal = ioRawVal/10;
 
   // Clip position to 0 to 180deg for standard servo
@@ -1064,7 +1084,7 @@ int ioChannel::getChanStat(void) {
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-float_t ioChannel::getEngVal(void) {
+float ioChannel::getEngVal(void) {
   return ioEngVal;
 };
 
