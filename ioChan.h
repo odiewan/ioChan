@@ -1,5 +1,6 @@
 #ifndef ioChannel_h__
 #define ioChannel_h__
+#include <stdint.h>
 #include <Arduino.h>
 #include <Servo.h>
 
