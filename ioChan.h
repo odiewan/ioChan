@@ -52,8 +52,8 @@
 #define SERVO_SPD_REV_MAX     0
 #define SERVO_SPD_ZERO        90
 
-#define S1_WEIGHT             10
-#define S2_WEIGHT             7
+#define S1_WEIGHT             10.0
+#define S2_WEIGHT             7.0
 #define WEIGHT_TOTAL          S1_WEIGHT + S2_WEIGHT
 
 //---NOTE: Teensy board analog inputs are not 5v tolerant. The predefined

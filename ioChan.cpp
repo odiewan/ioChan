@@ -554,13 +554,23 @@ void ioChannel::procPwmInChan(void) {
 //-----------------------------------------------------------------------------
 float ioChannel::filterAin(float ainIn) {
   static float ainShadow = 0;
+  static float s0 = 0;
+  static float s1 = 0;
+  static float s2 = 0;
+  static float s3 = 0;
+
   static float ainOut = 0;
 
   switch(ioFilter) {
     default:
     case IO_FILT_NONE:
-    case IO_FILT_MOVING_AVG:
-      ainOut = ainIn;
+    case IO_FILT_MOVING_AVG:  
+      s3 = s2;
+      s2 = s1;
+      s1 = ainShadow;
+      s0 = ainIn;
+
+      ainOut = (s0 + s1 + s2 + s3)/4.0;
       break;
     case IO_FILT_WEIGHTED_AVG:
       ainOut = ((ainIn * S1_WEIGHT) + (ainShadow * S2_WEIGHT))/(WEIGHT_TOTAL *2);
@@ -666,7 +676,7 @@ void ioChannel::procAinChan(void) {
       thermIn04 += 1.0/(25.0 + 273.15);
       thermIn05 = (1.0/thermIn04);
       ioEngVal = thermIn05 - (273.15);
-      ioEngValFilt = filterAin(ioEngVal);
+      ioEngVal = filterAin(ioEngVal);
 
 
 
