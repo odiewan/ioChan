@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <ioChan.h>
+#include "ioChan.h"
 
 /*-----------------------------------------------------------------------------
  *
@@ -277,6 +277,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
       ioErr = IO_ERR_AIN_NOM;
       break;
 
+    case IO_TYPE_DIN_BIN:
     case IO_TYPE_DIN_PWM:
     case IO_TYPE_DIN_PPM:
       ioStatus = IO_ST_DIN_PWM_OFFLINE;
@@ -356,9 +357,6 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
       break;
   }
 
-
-
-  genDispStr();
   initChan();
 };
 
@@ -403,6 +401,8 @@ void ioChannel::initChan() {
       break;
       break;
 
+    case IO_TYPE_DIN_BIN:
+    case IO_TYPE_DIN_BIN_R:
     case IO_TYPE_DIN_PWM:
     case IO_TYPE_DIN_PPM:
     case IO_TYPE_DIN_PPM_SC:
@@ -440,7 +440,7 @@ void ioChannel::initChan() {
 //-----------------------------------------------------------------------------
 void ioChannel::procInChan(void) {
   ioStatus = IO_ST_DEF;
-  ioStatus = IO_ERR_NONE;
+  ioErr = IO_ERR_NONE;
   switch (ioType) {
     default:
     case IO_TYPE_UNCONFIG:
@@ -474,6 +474,8 @@ void ioChannel::procInChan(void) {
       procAinChan();
       break;
 
+    case IO_TYPE_DIN_BIN:
+    case IO_TYPE_DIN_BIN_R:
     case IO_TYPE_DIN_PWM:
     case IO_TYPE_DIN_PWM_REV:
     case IO_TYPE_DIN_PPM:
@@ -494,55 +496,81 @@ void ioChannel::procInChan(void) {
 //-----------------------------------------------------------------------------
 void ioChannel::procPwmInChan(void) {
   int static tempVal = 0;
+  ioStatus = IO_ST_DIN_OFFLINE;
 
+  switch(ioType) {
+    default:
+    case IO_TYPE_DIN_BIN:
+    case IO_TYPE_DIN_BIN_R:
+      ioRawVal = digitalRead(ioPin);
+      ioStatus = IO_ST_DIN_NOM;
+      if (ioInvert == 1) {
+        ioEngVal = !ioRawVal;
+        ioStatus = IO_ST_DIN;
+      }
+      else {
+        ioEngVal = ioRawVal;
+        ioStatus = IO_ST_DIN_R;
+      }
+      
+      break;
 
-  tempVal = pulseIn(ioPin, HIGH, PULSE_IN_TIMEOUT);
+    case IO_TYPE_DIN_PPM:
+    case IO_TYPE_DIN_PPM_REV:
+      ioStatus = IO_ST_DIN_PPM_NOM;
+      ioStatus = IO_ST_DIN_PPM_NOM_REV;
 
-  if(tempVal > 0) {
-    ioRawVal = tempVal;
+    case IO_TYPE_DIN_PWM:
+    case IO_TYPE_DIN_PWM_REV:
+      ioStatus = IO_ST_DIN_PWM_NOM;
+      tempVal = pulseIn(ioPin, HIGH, PULSE_IN_TIMEOUT);
 
-    if(ioInvert) {
-      ioEngVal = RX_IN_MIN + (RX_IN_MAX - ioRawVal);
-
-      if(ioEngVal > ioCalEngMin)
-        ioCalEngMin = ioEngVal;
-
-      if(ioEngVal < ioCalEngMax)
-        ioCalEngMax = ioEngVal;
-    }
-    else {
+      ioRawVal = tempVal;
       ioEngVal = ioRawVal;
+      if (ioInvert) {
+        ioEngVal = RX_IN_MIN + (RX_IN_MAX - ioEngVal);
+        ioStatus = IO_ST_DIN_PWM_NOM_REV;
+      }
 
-      if(ioEngVal > ioCalEngMax)
-        ioCalEngMin = ioEngVal;
+      break;
 
-      if(ioEngVal < ioCalEngMin)
-        ioCalEngMax = ioEngVal;
-    }
+    case IO_TYPE_DIN_PPM_SC: 
+    case IO_TYPE_DIN_PPM_REV_SC:
+      ioStatus = IO_ST_DIN_SVO_OFFLINE;
+      tempVal = pulseIn(ioPin, HIGH, PULSE_IN_TIMEOUT);
 
-    switch(ioType) {
-      default:
-      case IO_TYPE_DIN_PWM:
-      case IO_TYPE_DIN_PPM:
-      case IO_TYPE_DIN_PWM_REV:
-      case IO_TYPE_DIN_PPM_REV:
-        break;
+      ioRawVal = tempVal;
 
-      case IO_TYPE_DIN_PPM_SC:
-      case IO_TYPE_DIN_PPM_REV_SC:
-        tempVal = (ioEngVal - RX_IN_MIN) * 100;
-        tempVal /= RX_IN_RANGE;
+      tempVal = (ioEngVal - RX_IN_MIN) * 100;
+      tempVal /= RX_IN_RANGE;
 
-        ioEngVal = tempVal * (SERVO_POS_RANGE / 10);
-        ioEngVal /= 10;
+      ioEngVal = tempVal * (SERVO_POS_RANGE / 10);
+      ioEngVal /= 10;
+      ioStatus = IO_ST_DIN_SVO_NOM;
 
-        break;
+      break;
 
-    }
   }
-  else
-    ioEngVal = 0;
-//  ioEngVal = ((ioRawVal - DWELL_MIN)/3);
+
+  //---filter eng val----
+  if (ioInvert) {
+    ioEngVal = RX_IN_MIN + (RX_IN_MAX - ioEngVal);
+
+    if (ioEngVal > ioCalEngMin)
+      ioCalEngMin = ioEngVal;
+
+    if (ioEngVal < ioCalEngMax)
+      ioCalEngMax = ioEngVal;
+  }
+  else {
+
+    if (ioEngVal > ioCalEngMax)
+      ioCalEngMin = ioEngVal;
+
+    if (ioEngVal < ioCalEngMin)
+      ioCalEngMax = ioEngVal;
+  }
+
 
   /* copy engineering value to final consumer */
   if(ioExtVarPtr != NULL)
@@ -920,159 +948,7 @@ void ioChannel::alarmsAIN(void) {
 
 };
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void ioChannel::genDispStr(void) {
-  switch(ioType) {
-    default:
-    case IO_TYPE_UNCONFIG:
-      break;
 
-    case IO_TYPE_AIN_NORM:
-    case IO_TYPE_AIN_RAW:
-    case IO_TYPE_AIN_3V3_255:
-    case IO_TYPE_AIN_3V3_3V3:
-    case IO_TYPE_AIN_5V_3V3:
-    case IO_TYPE_AIN_10V_3V3:
-    case IO_TYPE_AIN_12V_3V3:
-    case IO_TYPE_AIN_15V_3V3:
-    case IO_TYPE_AIN_31V_3V3:
-    case IO_TYPE_AIN_3V3_5V:
-    case IO_TYPE_AIN_5V_5V:
-    case IO_TYPE_AIN_12V_5V:
-    case IO_TYPE_AIN_15V_5V:
-    case IO_TYPE_AIN_31V_5V:
-    case IO_TYPE_AIN_NTC_5V:
-    case IO_TYPE_AIN_LM35_3V3:
-    case IO_TYPE_AIN_INTERP:
-    case IO_TYPE_AIN_INTERP_USER:
-    case IO_TYPE_AIN_INTERP_OAT_C:
-    case IO_TYPE_AIN_INTERP_COOLANT_C:
-    case IO_TYPE_AIN_INTERP_OAT_F:
-    case IO_TYPE_AIN_INTERP_COOLANT_F:
-      genDispAINStr();
-      break;
-
-    case IO_TYPE_AIN_3V3_1800:
-    case IO_TYPE_DOUT_SERVO_180:
-    case IO_TYPE_DOUT_SERVO_CONT:
-      genDispSvoStr();
-      break;
-
-  }
-};
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void ioChannel::genDispSvoStr(void) {
-  static String tempOutStr;
-
-  tempOutStr = String(ioEngVal);
-//  tempOutStr = String(ioEngVal) + ":" + String(ioStatus);
-
-  ioOutString = tempOutStr;
-};
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void ioChannel::genDispAINStr(void) {
-  int padLen = 0;
-  unsigned int strLen = 0;
-  unsigned int idx = 0;
-  unsigned int tempVal = 0;
-  String engVarStr = "";
-  String negStr = "";
-  String zeroPad = "";
-  String LHStr = "0";
-  String RHStr = "";
-  String UnitStr = "";
-  String tmpStr3 = "";
-
-  tempVal = abs(ioEngVal);
-  engVarStr = String(tempVal);
-  strLen = engVarStr.length();
-  //---Output string format: LHStr.RHStr---
-  //---Three cases:
-  //    Eng var has less digits than ioFixedPoints:
-  //      * pad RHStr to equal ioFixedPoints
-  //      * LHStr equals "0"
-
-  if(ioEngVal < 0)
-    negStr = "-";
-
-  // if(strLen < ioFixedPoints) {
-  //   padLen = ioFixedPoints - strLen;
-
-  //   for(int i = 0; i < padLen; i++)
-  //     zeroPad += "0";
-
-  //   RHStr = zeroPad + engVarStr;
-  //   LHStr = "0";
-  // }
-  // //    Eng var has equal digits than ioFixedPoints---
-  // //      * RHStr = engVal
-  // //      * LHStr equals "0"
-  // else if(strLen == ioFixedPoints) {
-  //   RHStr = engVarStr;
-  //   LHStr = "0";
-  // }
-  // //    Eng var has more digits than ioFixedPoints---
-  // //      * RHStr equals ioFixedPoints number of chars from the right of EngVal
-  // //      * LHStr equals everything to the left of RHStr
-  // else {
-  //   idx = strLen - ioFixedPoints;
-  //   RHStr = engVarStr.substring(idx);
-  //   LHStr = engVarStr.substring(0, idx);
-  // }
-
-  switch(ioUnits) {
-    case IOUNIT_NA:
-    default:
-      break;
-
-    case IOUNIT_VOLTS:
-      UnitStr = " V";
-      break;
-
-    case IOUNIT_AMPS:
-      UnitStr = " A";
-      break;
-
-    case IOUNIT_TEMP_F:
-      UnitStr = " F";
-      break;
-
-    case IOUNIT_TEMP_C:
-      UnitStr = " C";
-      break;
-
-    case IOUNIT_TEMP_HZ:
-      UnitStr = " Hz";
-      break;
-
-    case IOUNIT_TEMP_PERCENT:
-      UnitStr = " %";
-      break;
-
-    case IOUNIT_TEMP_TIME:
-      UnitStr = " S";
-      break;
-  }
-
-  ioOutString = negStr + LHStr + "." + RHStr + UnitStr;
-};
-
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-String ioChannel::getDispStr(void) {
-  genDispStr();
-  return ioOutString;
-};
 
 //-----------------------------------------------------------------------------
 //

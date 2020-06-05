@@ -1,7 +1,8 @@
 #ifndef ioChannel_h__
 #define ioChannel_h__
+#include <stdint.h>
 #include <Arduino.h>
-#include <Servo.h>
+#include "Servo.h"
 
 #define ACCUM_HR_MAX          250
 #define ACCUM_HY_MAX          250
@@ -51,8 +52,8 @@
 #define SERVO_SPD_REV_MAX     0
 #define SERVO_SPD_ZERO        90
 
-#define S1_WEIGHT             10
-#define S2_WEIGHT             7
+#define S1_WEIGHT             10.0
+#define S2_WEIGHT             7.0
 #define WEIGHT_TOTAL          S1_WEIGHT + S2_WEIGHT
 
 //---NOTE: Teensy board analog inputs are not 5v tolerant. The predefined
@@ -90,13 +91,18 @@ enum ioChanTypeEnum {
                                      Vishay NTCLE100E3103 NTC
                                      which is 10K at 25 degrees Celsius */
   IO_TYPE_AIN_INTERP_COOLANT_F,   // Interpolated conversion using Coolant F lookup chart
+
+  IO_TYPE_DIN_BIN,                // Simple digital, pull up nominally high
+  IO_TYPE_DIN_BIN_R,              // Simple digital, pull up nominally low (reversed)
   IO_TYPE_DIN_PWM,                // PWM Input, normal sense, no scaling
   IO_TYPE_DIN_PWM_REV,            // PWM Input, reversed sense, no scaling
   IO_TYPE_DIN_PPM,                // 1024res, 22ms, RC RX PPM input, normal sense, no scaling
   IO_TYPE_DIN_PPM_REV,            // 1024res, 22ms, RC RX PPM input, reverse sense, no scaling
   IO_TYPE_DIN_PPM_SC,             // 1024res, 22ms, RC RX PPM input, normal sense, scaled 0-1800
   IO_TYPE_DIN_PPM_REV_SC,         // 1024res, 22ms, RC RX PPM input, rev sense, scaled 1800-0
+
   IO_TYPE_DIO_NOM,
+
   IO_TYPE_DOUT_PWM,
   IO_TYPE_DOUT_PWM_INV,
   IO_TYPE_DOUT_SERVO_180,
@@ -114,6 +120,7 @@ enum ioFilterType {
 
 enum ioErrState {
   IO_ERR_NONE,
+  IO_ERR_CFG,
   IO_ERR_AIN_NOM,                 // 1
   IO_ERR_AIN_MIN,                 // 2
   IO_ERR_AIN_MAX,                 // 3
@@ -151,50 +158,68 @@ enum ioErrState {
 
 //---Channel States-----------------
 enum ioChanState {
-  IO_ST_DEF,                      // 0
-  IO_ST_AIN_OFFLINE,              // 1 Equivalent to disabled
-  IO_ST_AIN_NOMINAL,              // 2
-  IO_ST_AIN_RAW,                  // 3
-  IO_ST_AIN_V,                    // 4
-  IO_ST_AIN_3V3,                  // 5
-  IO_ST_AIN_5v,                   // 6
-  IO_ST_AIN_10V,                  // 7
-  IO_ST_AIN_12V,                  // 8
-  IO_ST_AIN_15V,                  // 9
-  IO_ST_AIN_LOW_RED,              // 10
-  IO_ST_AIN_LOW_YEL,              // 11
-  IO_ST_AIN_HI_RED,               // 12
-  IO_ST_AIN_HI_YEL,               // 13
+  IO_ST_NA,
+  IO_ST_DEF,
+  IO_ST_AIN_OFFLINE,
+  IO_ST_AIN_NOMINAL,
+  IO_ST_AIN_RAW,                  
+  IO_ST_AIN_V,                    
+  IO_ST_AIN_3V3,                  
+  IO_ST_AIN_5v,                   
+  IO_ST_AIN_10V,                  
+  IO_ST_AIN_12V,                  
+  IO_ST_AIN_15V,                  
+  IO_ST_AIN_LOW_RED,              
+  IO_ST_AIN_LOW_YEL,              
+  IO_ST_AIN_HI_RED,               
+  IO_ST_AIN_HI_YEL,               
 
-  IO_ST_DIN_PWM_OFFLINE,          // 14 Equivalent to disabled
-  IO_ST_DIN_PWM_NOM,              // 15
-  IO_ST_DIN_PWM_NOM_INV,          // 16
+  IO_ST_DIN_OFFLINE,           
+  IO_ST_DIN_NOM,
+  IO_ST_DIN,                      
+  IO_ST_DIN_R,                    
 
-  IO_ST_DIO_OFFLINE,              // 17 Equivalent to disabled
-  IO_ST_DIO_NOM,                  // 18
-  IO_ST_DIO_IN_ON,                // 19
-  IO_ST_DIO_IN_OFF,               // 20
-  IO_ST_DIO_OUT_ON,               // 21
-  IO_ST_DIO_OUT_OFF,              // 22
+  IO_ST_DIN_PWM_OFFLINE,          
+  IO_ST_DIN_PWM_NOM,              
+  IO_ST_DIN_PWM_NOM_REV,          
 
-  IO_ST_DOUT_PWM_OFFLINE,         // 23 Equivalent to disabled
-  IO_ST_DOUT_PWM_NOM,             // 24
-  IO_ST_DOUT_PWM_NOM_INV,         // 25
+  IO_ST_DIN_PPM_OFFLINE,
+  IO_ST_DIN_PPM_NOM,
+  IO_ST_DIN_PPM_NOM_REV,
 
-  IO_ST_DOUT_SERVO_OFFLINE,       // 26
-  IO_ST_DOUT_SERVO_NOM,           // 27
-  IO_ST_DOUT_SERVO_180_OFFLINE,   // 28
-  IO_ST_DOUT_SERVO_180_NOM,       //
-  IO_ST_DOUT_SERVO_180_MIN,       // 29
-  IO_ST_DOUT_SERVO_180_ZERO,      // 30
-  IO_ST_DOUT_SERVO_180_MAX,       // 31
+  IO_ST_DIN_SVO_OFFLINE,
+  IO_ST_DIN_SVO_NOM,
 
-  IO_ST_DOUT_SERVO_CONT_OFFLINE,  // 32
-  IO_ST_DOUT_SERVO_CONT_NOM,      // 33
-  IO_ST_DOUT_SERVO_CONT_REV_MAX,  // 34
-  IO_ST_DOUT_SERVO_CONT_ZERO,     // 35
-  IO_ST_DOUT_SERVO_CONT_FWD_MAX   // 36
+  IO_ST_DIO_OFFLINE,              
+  IO_ST_DIO_NOM,                  
+  IO_ST_DIO_IN_ON,                
+  IO_ST_DIO_IN_OFF,               
+  IO_ST_DIO_OUT_ON,               
+  IO_ST_DIO_OUT_OFF,              
+
+  IO_ST_DOUT_PWM_OFFLINE,         
+  IO_ST_DOUT_PWM_NOM,             
+  IO_ST_DOUT_PWM_NOM_INV,         
+
+  IO_ST_DOUT_SERVO_OFFLINE,       
+  IO_ST_DOUT_SERVO_NOM,           
+  IO_ST_DOUT_SERVO_180_OFFLINE,   
+  IO_ST_DOUT_SERVO_180_NOM,       
+  IO_ST_DOUT_SERVO_180_MIN,       
+  IO_ST_DOUT_SERVO_180_ZERO,      
+  IO_ST_DOUT_SERVO_180_MAX,       
+
+  IO_ST_DOUT_SERVO_CONT_OFFLINE,  
+  IO_ST_DOUT_SERVO_CONT_NOM,      
+  IO_ST_DOUT_SERVO_CONT_REV_MAX,  
+  IO_ST_DOUT_SERVO_CONT_ZERO,     
+  IO_ST_DOUT_SERVO_CONT_FWD_MAX,  
+  IO_ST_CFG_ERR,                  
+  NUM_IO_STATES
 };
+
+
+
 
 enum dispAINSwEnum {
   DISP_AIN_NORM,      // Normal Display: just the engineering value
@@ -245,9 +270,6 @@ class ioChannel {
 
     int getChanStat(void);
     float getEngVal(void);
-    String getDispStr(void);
-
-
 
   private:
     int *ioExtVarPtr;
@@ -285,10 +307,6 @@ class ioChannel {
     void procAinChan(void);
     void alarmsAIN(void);
     float filterAin(float ainIn);
-    void genDispStr(void);
-    void genDispSvoStr(void);
-    void genDispAINStr(void);
-
 };
 
 #endif
