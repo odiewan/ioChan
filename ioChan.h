@@ -36,14 +36,14 @@
 
 #define PWM_ENG_MAX           10000
 
-#define RX_IN_MAX             1900
-#define RX_IN_MIN             1100
+#define RX_IN_MAX             2137.0
+#define RX_IN_MIN             905.0
 #define RX_IN_RANGE           (RX_IN_MAX - RX_IN_MIN)
 
 #define SERVO_CMD_MIN         0
 #define SERVO_CMD_MAX         180
 
-#define SERVO_POS_MAX         1700
+#define SERVO_POS_MAX         1800
 #define SERVO_POS_MID         900
 #define SERVO_POS_MIN         0
 #define SERVO_POS_RANGE       (SERVO_POS_MAX - SERVO_POS_MIN)

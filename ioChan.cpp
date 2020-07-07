@@ -495,7 +495,7 @@ void ioChannel::procInChan(void) {
 //
 //-----------------------------------------------------------------------------
 void ioChannel::procPwmInChan(void) {
-  int static tempVal = 0;
+  static unsigned long tempVal = 0;
   ioStatus = IO_ST_DIN_OFFLINE;
 
   switch(ioType) {
@@ -537,15 +537,17 @@ void ioChannel::procPwmInChan(void) {
     case IO_TYPE_DIN_PPM_SC: 
     case IO_TYPE_DIN_PPM_REV_SC:
       ioStatus = IO_ST_DIN_SVO_OFFLINE;
-      tempVal = pulseIn(ioPin, HIGH, PULSE_IN_TIMEOUT);
+      //---Get raw pulsewidth in uSeconds
+      tempVal = pulseIn(ioPin, HIGH);
 
+      //---Save raw value
       ioRawVal = tempVal;
 
-      tempVal = (ioEngVal - RX_IN_MIN) * 100;
-      tempVal /= RX_IN_RANGE;
+      //---normalize to 0-100)
+      ioEngVal = ((float)tempVal - RX_IN_MIN) / RX_IN_RANGE * 100;
 
-      ioEngVal = tempVal * (SERVO_POS_RANGE / 10);
-      ioEngVal /= 10;
+      //ioEngVal = ioEngVal * (SERVO_POS_RANGE / 10);
+      //ioEngVal /= 1000;
       ioStatus = IO_ST_DIN_SVO_NOM;
 
       break;
@@ -574,7 +576,9 @@ void ioChannel::procPwmInChan(void) {
 
   /* copy engineering value to final consumer */
   if(ioExtVarPtr != NULL)
-    *ioExtVarPtr = ioEngVal;
+    *ioExtVarPtr = (int)ioEngVal;
+  else 
+    ioStatus = IO_ST_CFG_ERR;
 };
 
 //-----------------------------------------------------------------------------
