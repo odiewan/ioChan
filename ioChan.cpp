@@ -58,8 +58,7 @@ ioChannel::ioChannel() {
   ioIntpTemp = 0;
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
   ioType = nType;
@@ -119,7 +118,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_3V3_255:
       ioUnits = IOUNIT_NA;
-      
+
       ioGain = 254;    //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -130,7 +129,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_3V3_3V3:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 29;    //<--Gain * 10,000
       ioOffset = -3;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -142,7 +141,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_5V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 49;    //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -154,7 +153,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_10V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 98;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -166,7 +165,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_12V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 117;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -179,7 +178,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
       //----Top R = 20kOhm, Bottom R = 5k scaled to a 0-3v range
     case IO_TYPE_AIN_15V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 144;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -197,7 +196,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
     //----Top R = 20kOhm, Bottom R = 5k scaled to a 0-5v range
     case IO_TYPE_AIN_15V_5V:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 224;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -215,7 +214,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_31V_3V3:
       ioUnits = IOUNIT_VOLTS;
-      
+
       ioGain = 263;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
@@ -239,7 +238,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_LM35_3V3:
       ioUnits = IOUNIT_TEMP_C;
-      
+
       ioGain = -300;    //<--Gain * 10,000
       ioOffset = 76800;   //<--Offset * 10,000
 
@@ -251,7 +250,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
     case IO_TYPE_AIN_THERM_STIEN_3V3:
       ioUnits = IOUNIT_TEMP_C;
-      
+
       ioGain = 1;    //<--Gain * 10,000
       ioOffset = 1;   //<--Offset * 10,000
 
@@ -360,8 +359,7 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
   initChan();
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::initChan() {
   switch (ioType) {
@@ -435,8 +433,7 @@ void ioChannel::initChan() {
   }
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procInChan(void) {
   ioStatus = IO_ST_DEF;
@@ -470,7 +467,7 @@ void ioChannel::procInChan(void) {
     case IO_TYPE_AIN_INTERP_OAT_F:
     case IO_TYPE_AIN_INTERP_COOLANT_F:
     case IO_TYPE_AIN_THERM_STIEN_3V3:
-    
+
       procAinChan();
       break;
 
@@ -491,8 +488,7 @@ void ioChannel::procInChan(void) {
 
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procPwmInChan(void) {
   static unsigned long tempVal = 0;
@@ -512,7 +508,7 @@ void ioChannel::procPwmInChan(void) {
         ioEngVal = ioRawVal;
         ioStatus = IO_ST_DIN_R;
       }
-      
+
       break;
 
     case IO_TYPE_DIN_PPM:
@@ -534,7 +530,7 @@ void ioChannel::procPwmInChan(void) {
 
       break;
 
-    case IO_TYPE_DIN_PPM_SC: 
+    case IO_TYPE_DIN_PPM_SC:
     case IO_TYPE_DIN_PPM_REV_SC:
       ioStatus = IO_ST_DIN_SVO_OFFLINE;
       //---Get raw pulsewidth in uSeconds
@@ -577,12 +573,11 @@ void ioChannel::procPwmInChan(void) {
   /* copy engineering value to final consumer */
   if(ioExtVarPtr != NULL)
     *ioExtVarPtr = (int)ioEngVal;
-  else 
+  else
     ioStatus = IO_ST_CFG_ERR;
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 float ioChannel::filterAin(float ainIn) {
   static float ainShadow = 0;
@@ -604,8 +599,7 @@ float ioChannel::filterAin(float ainIn) {
   return ainOut;
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procAinChan(void) {
   static float thermIn00 = 0;
@@ -684,16 +678,16 @@ void ioChannel::procAinChan(void) {
       else
         ioEngVal = filterAin(ioRawVal);
       break;
-    
+
     case IO_TYPE_AIN_THERM_STIEN_3V3:
       ioStatus = IO_ST_AIN_V;
       thermIn00 = ioRawVal;
       thermIn01 = (1023/thermIn00) - 1;
       thermIn02 = 1.0/thermIn01;
       thermIn03 = log(thermIn02);
-      
 
-      
+
+
       thermIn04 = thermIn03 / 3950.0;
       thermIn04 += 1.0/(25.0 + 273.15);
       thermIn05 = (1.0/thermIn04);
@@ -735,16 +729,14 @@ void ioChannel::procAinChan(void) {
   // alarmsAIN();
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procIOChan(void) {
 };
 
 
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procDoutChanPWM() {
   ioEngVal = *ioExtVarPtr;
@@ -773,8 +765,7 @@ void ioChannel::procDoutChanPWM() {
   analogWrite(ioPin, ioRawVal);
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procServoOutChan(void) {
 
@@ -852,8 +843,7 @@ void ioChannel::procServoOutChan(void) {
   ioServo->write(ioEngVal);
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::procOutChan(void) {
   ioStatus = IO_ST_DEF;
@@ -884,8 +874,7 @@ void ioChannel::procOutChan(void) {
 
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 void ioChannel::alarmsAIN(void) {
   //---High Red Level---
@@ -954,22 +943,19 @@ void ioChannel::alarmsAIN(void) {
 
 
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 int ioChannel::getChanStat(void) {
   return ioStatus;
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 float ioChannel::getEngVal(void) {
   return ioEngVal;
 };
 
-//-----------------------------------------------------------------------------
-//
+
 //-----------------------------------------------------------------------------
 int ioChannel::getRawVal(void) {
   return ioRawVal;
