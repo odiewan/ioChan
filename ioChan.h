@@ -4,6 +4,11 @@
 #include <Arduino.h>
 #include "Servo.h"
 
+#define C_TO_KELVIIN          273.15
+#define ROOM_TEMP_C           25.0
+#define TRIM_C                6.0
+
+
 #define ACCUM_HR_MAX          250
 #define ACCUM_HY_MAX          250
 #define ACCUM_LY_MAX          250
@@ -74,12 +79,7 @@ enum ioChanTypeEnum {
   IO_TYPE_AIN_15V_3V3,            // 0-15v scaled to 3.3v 10bit Analog
   IO_TYPE_AIN_31V_3V3,            // 0-31v scaled to 3.3v 10bit Analog
 
-  IO_TYPE_AIN_3V3_5V,             // 0-3.3v scaled to 3.3v 10bit Analog
-  IO_TYPE_AIN_5V_5V,              // 0-5v scaled to 3.3v 10bit Analog
-  IO_TYPE_AIN_12V_5V,             // 0-12v scaled to 5v 10bit Analog
-  IO_TYPE_AIN_15V_5V,             // 0-15v scaled to 5v 10bit Analog
-  IO_TYPE_AIN_31V_5V,             // 0-31v scaled to 5v 10bit Analog
-  IO_TYPE_AIN_NTC_5V,             // Narrow linear approx OAT C Vishay NTCLE100E3103 NTC
+  IO_TYPE_AIN_THERM_3V3,             // Narrow linear approx Vishay NTCLE100E3103 NTC
   IO_TYPE_AIN_LM35_3V3,           // Using linear integrated LM35 circuit, 1degC/10mv
   IO_TYPE_AIN_THERM_STIEN_3V3,    // Using 10k thermistor with Steinhart-Hart
 

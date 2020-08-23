@@ -193,41 +193,11 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
 
       break;
 
-    //----Top R = 20kOhm, Bottom R = 5k scaled to a 0-5v range
-    case IO_TYPE_AIN_15V_5V:
-      ioUnits = IOUNIT_VOLTS;
-
-      ioGain = 224;   //<--Gain * 10,000
-      ioOffset = 0;   //<--Offset * 10,000
-      ioMinEngVal = ioOffset;
-      ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-
-      ioStatus = IO_ST_AIN_OFFLINE;
-      ioErr = IO_ERR_AIN_NOM;
-      ioLowRed = 10000;       // 10v
-      ioLowYel = 11000;       // 11v
-      ioHiYel = 14500;        // 14.5v
-      ioHiRed = 14900;        // 14.9v
-
-      break;
-
-
     case IO_TYPE_AIN_31V_3V3:
       ioUnits = IOUNIT_VOLTS;
 
       ioGain = 263;   //<--Gain * 10,000
       ioOffset = 0;   //<--Offset * 10,000
-      ioMinEngVal = ioOffset;
-      ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
-
-      ioStatus = IO_ST_AIN_OFFLINE;
-      ioErr = IO_ERR_AIN_NOM;
-      break;
-
-    case IO_TYPE_AIN_NTC_5V:
-      ioUnits = IOUNIT_TEMP_C;
-      ioGain = 95;   //<--Gain * 10,000
-      ioOffset =  16000;   //<--Offset * 10,000
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
 
@@ -249,6 +219,8 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
       break;
 
     case IO_TYPE_AIN_THERM_STIEN_3V3:
+    case IO_TYPE_AIN_THERM_3V3:
+
       ioUnits = IOUNIT_TEMP_C;
 
       ioGain = 1;    //<--Gain * 10,000
@@ -376,18 +348,14 @@ void ioChannel::initChan() {
     case IO_TYPE_AIN_12V_3V3:
     case IO_TYPE_AIN_15V_3V3:
     case IO_TYPE_AIN_31V_3V3:
-    case IO_TYPE_AIN_3V3_5V:
-    case IO_TYPE_AIN_5V_5V:
-    case IO_TYPE_AIN_12V_5V:
-    case IO_TYPE_AIN_15V_5V:
-    case IO_TYPE_AIN_31V_5V:
-    case IO_TYPE_AIN_NTC_5V:
     case IO_TYPE_AIN_INTERP_USER:
     case IO_TYPE_AIN_INTERP_OAT_C:
     case IO_TYPE_AIN_INTERP_OAT_F:
     case IO_TYPE_AIN_INTERP_COOLANT_C:
-
     case IO_TYPE_AIN_INTERP_COOLANT_F:
+    case IO_TYPE_AIN_THERM_3V3:
+    case IO_TYPE_AIN_THERM_STIEN_3V3:
+
       ioStatus = IO_ST_AIN_OFFLINE;
       pinMode(ioPin, INPUT);
       break;
@@ -453,12 +421,6 @@ void ioChannel::procInChan(void) {
     case IO_TYPE_AIN_12V_3V3:
     case IO_TYPE_AIN_15V_3V3:
     case IO_TYPE_AIN_31V_3V3:
-    case IO_TYPE_AIN_3V3_5V:
-    case IO_TYPE_AIN_5V_5V:
-    case IO_TYPE_AIN_12V_5V:
-    case IO_TYPE_AIN_15V_5V:
-    case IO_TYPE_AIN_31V_5V:
-    case IO_TYPE_AIN_NTC_5V:
     case IO_TYPE_AIN_LM35_3V3:
     case IO_TYPE_AIN_INTERP:
     case IO_TYPE_AIN_INTERP_USER:
@@ -466,6 +428,7 @@ void ioChannel::procInChan(void) {
     case IO_TYPE_AIN_INTERP_COOLANT_C:
     case IO_TYPE_AIN_INTERP_OAT_F:
     case IO_TYPE_AIN_INTERP_COOLANT_F:
+    case IO_TYPE_AIN_THERM_3V3:
     case IO_TYPE_AIN_THERM_STIEN_3V3:
 
       procAinChan();
@@ -639,7 +602,6 @@ void ioChannel::procAinChan(void) {
       //   // ioEngVal = filterAin(ioRawVal);
       break;
 
-
     case IO_TYPE_AIN_NORM:
     case IO_TYPE_AIN_3V3_3V3:
     case IO_TYPE_AIN_5V_3V3:
@@ -647,11 +609,6 @@ void ioChannel::procAinChan(void) {
     case IO_TYPE_AIN_12V_3V3:
     case IO_TYPE_AIN_15V_3V3:
     case IO_TYPE_AIN_31V_3V3:
-    case IO_TYPE_AIN_3V3_5V:
-    case IO_TYPE_AIN_5V_5V:
-    case IO_TYPE_AIN_12V_5V:
-    case IO_TYPE_AIN_15V_5V:
-    case IO_TYPE_AIN_31V_5V:
       ioStatus = IO_ST_AIN_RAW;
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
@@ -680,6 +637,7 @@ void ioChannel::procAinChan(void) {
       break;
 
     case IO_TYPE_AIN_THERM_STIEN_3V3:
+      //Assumes thermistor is wired from analog ground to ain w/ resistor to 3.3 analog reference
       ioStatus = IO_ST_AIN_V;
       thermIn00 = ioRawVal;
       thermIn01 = (1023/thermIn00) - 1;
@@ -689,21 +647,19 @@ void ioChannel::procAinChan(void) {
 
 
       thermIn04 = thermIn03 / 3950.0;
-      thermIn04 += 1.0/(25.0 + 273.15);
+      thermIn04 += 1.0/(ROOM_TEMP_C + TRIM_C + C_TO_KELVIIN);
       thermIn05 = (1.0/thermIn04);
-      ioEngVal = thermIn05 - (273.15);
+      ioEngVal = thermIn05 - (C_TO_KELVIIN);
       ioEngValFilt = filterAin(ioEngVal);
-
-
 
       break;
 
-    case IO_TYPE_AIN_NTC_5V:
-      ioStatus = IO_ST_AIN_5v;
+
+    case IO_TYPE_AIN_THERM_3V3:
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
         /* Gain is stored at gain * 100 */
-        ioEngVal = (ioRawValRem * ioGain) + ioOffset;
+        ioEngVal = (ioRawVal * ioGain) + ioOffset;
 
       }
       /* Otherwise, just assign raw units to engineering units */
