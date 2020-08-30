@@ -218,6 +218,18 @@ ioChannel::ioChannel(ioChanTypeEnum nType, int nPin, int* eValPtr) {
       ioErr = IO_ERR_AIN_NOM;
       break;
 
+    case IO_TYPE_AIN_NTC_90K_3950_3V3:
+      ioUnits = IOUNIT_TEMP_C;
+
+      ioGain = 1;    //<--Gain * 10,000
+      ioOffset = 1;   //<--Offset * 10,000
+
+      ioMinEngVal = ioOffset;
+      ioMaxEngVal = MAX_AIN;
+      ioStatus = IO_ST_AIN_OFFLINE;
+      ioErr = IO_ERR_AIN_NOM;
+      break;
+
     case IO_TYPE_AIN_THERM_STIEN_3V3:
     case IO_TYPE_AIN_THERM_3V3:
 
@@ -360,6 +372,8 @@ void ioChannel::initChan() {
       pinMode(ioPin, INPUT);
       break;
 
+
+    case IO_TYPE_AIN_NTC_90K_3950_3V3:
     case IO_TYPE_AIN_LM35_3V3:
       ioStatus = IO_ST_AIN_OFFLINE;
       pinMode(ioPin, INPUT);
@@ -430,6 +444,7 @@ void ioChannel::procInChan(void) {
     case IO_TYPE_AIN_INTERP_COOLANT_F:
     case IO_TYPE_AIN_THERM_3V3:
     case IO_TYPE_AIN_THERM_STIEN_3V3:
+    case IO_TYPE_AIN_NTC_90K_3950_3V3:
 
       procAinChan();
       break;
@@ -656,6 +671,7 @@ void ioChannel::procAinChan(void) {
 
 
     case IO_TYPE_AIN_THERM_3V3:
+    case IO_TYPE_AIN_NTC_90K_3950_3V3:
       /* if the gain is non-zero, covert from raw units to eng units */
       if(ioGain != 0) {
         /* Gain is stored at gain * 100 */

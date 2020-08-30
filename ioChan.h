@@ -81,7 +81,8 @@ enum ioChanTypeEnum {
 
   IO_TYPE_AIN_THERM_3V3,             // Narrow linear approx Vishay NTCLE100E3103 NTC
   IO_TYPE_AIN_LM35_3V3,           // Using linear integrated LM35 circuit, 1degC/10mv
-  IO_TYPE_AIN_THERM_STIEN_3V3,    // Using 10k thermistor with Steinhart-Hart
+  IO_TYPE_AIN_THERM_STIEN_3V3,    // Using 10k thermistor with Steinhart-Har
+  IO_TYPE_AIN_NTC_90K_3950_3V3,    // Using 90k NTC 3950
 
   IO_TYPE_AIN_INTERP,             // Interpolated conversion using lookup chart
   IO_TYPE_AIN_INTERP_USER,        // Interpolated conversion using user lookup chart
