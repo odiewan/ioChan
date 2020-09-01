@@ -1,5 +1,4 @@
-#include <Arduino.h>
-#include "ioChan.h"
+#include <ioChan.h>
 
 /*-----------------------------------------------------------------------------
  *
@@ -350,9 +349,17 @@ void ioChannel::initChan() {
     default:
       break;
 
+
     case IO_TYPE_AIN_NORM:
-    case IO_TYPE_AIN_RAW:
+      ioStatus = IO_ST_AIN_NOMINAL;
+      pinMode(ioPin, INPUT_PULLUP);
+      break;
+
+
+
+
     case IO_TYPE_AIN_3V3_255:
+    case IO_TYPE_AIN_RAW:
     case IO_TYPE_AIN_3V3_1800:
     case IO_TYPE_AIN_3V3_3V3:
     case IO_TYPE_AIN_5V_3V3:
@@ -371,7 +378,6 @@ void ioChannel::initChan() {
       ioStatus = IO_ST_AIN_OFFLINE;
       pinMode(ioPin, INPUT);
       break;
-
 
     case IO_TYPE_AIN_NTC_90K_3950_3V3:
     case IO_TYPE_AIN_LM35_3V3:
