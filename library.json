@@ -1,0 +1,27 @@
+{
+  "name": "ioChan",
+  "version": "0.0.1",
+  "description": "This is an hardware abstraction C++ library for Arduino and teensy",
+  "keywords": "planet, happiness, people",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://https://github.com/odiewan/ioChan.git"
+  },
+  "authors":
+  [
+    {
+      "name": "William O'Dell",
+      "email": "odie@odiesystems.com",
+      "url": "https://www.odiesystems.com",
+      "maintainer": true
+    }
+  ],
+  "license": "",
+  "homepage": "",
+  "dependencies": {
+    "ownername/print": ""
+  },
+  "frameworks": "*",
+  "platforms": "*"
+}
