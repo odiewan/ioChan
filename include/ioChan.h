@@ -60,6 +60,8 @@
 #define S1_WEIGHT             10.0
 #define S2_WEIGHT             7.0
 #define WEIGHT_TOTAL          S1_WEIGHT + S2_WEIGHT
+#define STEIN_GAIN            1
+#define STEIN_OFFSET          0
 
 //---NOTE: Teensy board analog inputs are not 5v tolerant. The predefined
 //         scalings (5v, 12v, 15v, 31v) assume a voltage divider that scales
@@ -121,6 +123,9 @@ enum ioFilterType {
 
 enum ioErrState {
   IO_ERR_NONE,
+  IO_ERR_NONE0,
+  IO_ERR_NONE1,
+  IO_ERR_NONE2,
   IO_ERR_CFG,
   IO_ERR_AIN_NOM,                 // 1
   IO_ERR_AIN_MIN,                 // 2
