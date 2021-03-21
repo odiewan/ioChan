@@ -700,7 +700,7 @@ void ioChannel::procIOChan() {
 
 //-----------------------------------------------------------------------------
 void ioChannel::procDoutChanPWM() {
-  ioRawVal = *ioExtVarPtr;
+  ioEngVal = *ioExtVarPtr;
 
   //---Set the ioChan status---
   ioErr = IO_ERR_DOUT_PWM_A;
@@ -708,24 +708,24 @@ void ioChannel::procDoutChanPWM() {
 
   //---Invert the output---0
   if(ioInvert == 1) {
-    ioEngVal = (int)((PWM_ENG_MAX - ioRawVal) / PWM_DC_PER_PWM_ENG);
+    ioRawVal = (int)((PWM_ENG_MAX - ioEngVal) / PWM_DC_PER_PWM_ENG);
     ioErr = IO_ERR_DOUT_PWM_B;
   }
   //---Not inverted output---
   else {
-    // ioEngVal = ioRawVal;
-    ioEngVal = (int)(ioRawVal / PWM_DC_PER_PWM_ENG);
+    // ioRawVal = ioEngVal;
+    ioRawVal = (int)(ioEngVal / PWM_DC_PER_PWM_ENG);
     ioErr = IO_ERR_DOUT_PWM_C;
   }
 
-  if(ioEngVal > PWM_8_MAX)
-    ioEngVal = PWM_8_MAX;
-  else if(ioEngVal < 0)
-    ioEngVal = 1;
+  if(ioRawVal > PWM_8_MAX)
+    ioRawVal = PWM_8_MAX;
+  else if(ioRawVal < 0)
+    ioRawVal = 1;
 
   //---Set the actual output---
-  analogWrite(ioPin, ioEngVal);
-};
+  analogWrite(ioPin, ioRawVal);
+}
 
 
 //-----------------------------------------------------------------------------
