@@ -2,7 +2,7 @@
 #define ioChannel_h__
 #include <stdint.h>
 #include <Arduino.h>
-#include "Servo.h"
+#include <Servo.h>
 
 #define C_TO_KELVIIN          273.15
 #define ROOM_TEMP_C           25.0
@@ -22,7 +22,6 @@
 #define DWELL_RANGE           771
 
 #define MAX_AIN               1023.0
-//#define MAX_AIN               1023
 
 #define ON                    1
 #define OFF                   0

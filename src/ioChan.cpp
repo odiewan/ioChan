@@ -13,12 +13,6 @@ void ioChannel::constructorCore(ioChanTypeEnum nType, int nPin, int *eValPtr, fl
   ioExtVarPtrFlt = eValPtrFlt;
 
 
-  if(ioExtVarPtr != NULL)
-    *ioExtVarPtr = 1;
-
-  if(ioExtVarPtrFlt != NULL)
-    *ioExtVarPtrFlt = 2.0;
-
 
   ioUnits = IOUNIT_NA;
   ioFilter = IO_FILT_NONE;
@@ -186,8 +180,10 @@ void ioChannel::initGains() {
     case IO_TYPE_AIN_LM35_3V3:
       ioUnits = IOUNIT_TEMP_C;
 
-      ioGain = -300;    //<--Gain * 10,000
-      ioOffset = 76800; //<--Offset * 10,000
+      ioGain = -3;
+      ioOffset = 768;
+      // ioGain = -300;    //<--Gain * 10,000
+      // ioOffset = 76800; //<--Offset * 10,000
 
       ioMinEngVal = ioOffset;
       ioMaxEngVal = (MAX_AIN * ioGain) + ioOffset;
@@ -387,7 +383,7 @@ void ioChannel::initChan() {
     case IO_TYPE_AIN_LM35_3V3:
       ioStatus = IO_ST_AIN_OFFLINE;
       pinMode(ioPin, INPUT);
-      analogReadAveraging(16);
+      // analogReadAveraging(16);
       break;
       break;
 
@@ -708,13 +704,13 @@ void ioChannel::procDoutChanPWM() {
 
   //---Invert the output---0
   if(ioInvert == 1) {
-    ioEngVal = (int)((PWM_ENG_MAX - ioRawVal) / PWM_DC_PER_PWM_ENG);
+    ioEngVal = (int)((PWM_ENG_MAX - ioRawVal));
     ioErr = IO_ERR_DOUT_PWM_B;
   }
   //---Not inverted output---
   else {
     // ioEngVal = ioRawVal;
-    ioEngVal = (int)(ioRawVal / PWM_DC_PER_PWM_ENG);
+    ioEngVal = (int)(ioRawVal);
     ioErr = IO_ERR_DOUT_PWM_C;
   }
 
